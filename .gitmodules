@@ -1,0 +1,3 @@
+[submodule "src/patchelf-upstream"]
+	path = src/patchelf-upstream
+	url = https://github.com/NixOS/patchelf.git

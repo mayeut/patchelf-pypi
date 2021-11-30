@@ -1,0 +1,8 @@
+include CMakeLists.txt
+include COPYING
+include LICENSE
+include pyproject.toml
+include setup.py
+graft src/patchelf-upstream
+prune src/patchelf-upstream/.git*
+exclude src/patchelf-upstream/.git*

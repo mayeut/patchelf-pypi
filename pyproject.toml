@@ -1,0 +1,23 @@
+[build-system]
+requires = [
+    "scikit-build>=0.12",
+    "setuptools>=42",
+    "setuptools_scm>=5",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+build = "cp39-musllinux*"
+build-verbosity = 3
+repair-wheel-command = "cp {wheel} {dest_dir}/"
+test-extras = "test"
+test-command = "pytest {project}/tests"
+musllinux-x86_64-image = "patchelf_build_x86_64"
+musllinux-i686-image = "patchelf_build_i686"
+musllinux-aarch64-image = "patchelf_build_aarch64"
+musllinux-ppc64le-image = "patchelf_build_ppc64le"
+musllinux-s390x-image = "patchelf_build_s390x"
+
+[tool.cibuildwheel.linux.environment]
+CXXFLAGS = "-D_FORTIFY_SOURCE=2 -fstack-protector-strong -Wformat -Werror=format-security -O2 -static"

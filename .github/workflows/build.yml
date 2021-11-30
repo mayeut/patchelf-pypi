@@ -1,0 +1,169 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - "*"
+      - main
+    tags:
+      - "*.*.*.*"
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - uses: actions/setup-python@v2
+      - uses: pre-commit/action@v2.0.3
+
+
+  build_wheels:
+    name: Build ${{ matrix.arch }} wheels
+    needs: [lint]
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: "x86_64"
+            docker_arch: "amd64"
+            test_image: manylinux1_x86_64
+          - arch: "i686"
+            docker_arch: "i386"
+            test_image: manylinux1_i686
+          - arch: "aarch64"
+            docker_arch: "arm64v8"
+            test_image: manylinux2014_aarch64
+          - arch: "ppc64le"
+            docker_arch: "ppc64le"
+            test_image: manylinux2014_ppc64le
+          - arch: "s390x"
+            docker_arch: "s390x"
+            test_image: manylinux2014_s390x
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # required for setuptools_scm to find tags
+          submodules: 'recursive'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1.2.0
+        if: matrix.arch != 'x86_64'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1.6.0
+
+      - name: Build patchelf_build_${{ matrix.arch }} image
+        uses: docker/build-push-action@v2.7.0
+        with:
+          context: .
+          load: true
+          push: false
+          tags: patchelf_build_${{ matrix.arch }}:latest
+          build-args: |
+            ARCH=${{ matrix.docker_arch }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.3.0
+        env:
+          CIBW_ARCHS: "${{ matrix.arch }}"
+
+      - name: Test wheel on ${{ matrix.test_image }}
+        run: |
+          cat <<EOF > check.sh
+          set -e
+          set -x
+          WHEEL=$(find ./wheelhouse -name 'patchelf-*.whl')
+          auditwheel show \${WHEEL}
+          echo "\${WHEEL}" > ./patchelf
+          pipx install -f --pip-args="-r" patchelf
+          patchelf --version
+          EOF
+          docker run -v $(pwd):/gha quay.io/pypa/${{ matrix.test_image }} sh -ec "cd /gha && sh ./check.sh"
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
+
+  build_sdist:
+    name: Build source distribution
+    needs: [lint]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # required for setuptools_scm to find tags
+          submodules: 'recursive'
+
+      - name: Build SDist
+        run: pipx run build --sdist
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: dist/*.tar.gz
+
+  test_sdist:
+    name: Test SDist with python ${{ matrix.python }}
+    needs: [build_sdist]
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["2.7", "3.6", "3.10"]
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        name: Install Python ${{ matrix.python }}
+        with:
+          python-version: ${{ matrix.python }}
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: sdist
+
+      - name: Install SDist
+        run: |
+          SDIST="$(pwd)/$(find sdist -name '*.tar.gz')"
+          pip install "patchelf[test] @ file://${SDIST}"
+
+      - name: Test installed SDist
+        run: pytest ./tests
+
+  check_dist:
+    name: Check dist
+    needs: [build_wheels, build_sdist, test_sdist]
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      - run: pipx run twine check --strict dist/*
+
+  upload_pypi:
+    name: Upload to PyPI
+    needs: [build_wheels, build_sdist, test_sdist, check_dist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.repository == 'mayeut/patchelf-pypi' && startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      - name: Upload to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.4.2
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_RELEASE_PASSWORD }}
