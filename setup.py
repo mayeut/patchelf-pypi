@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+from stat import ST_MODE
 
+from setuptools import Command
 from setuptools_scm import get_version
 from skbuild import setup
 from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
@@ -29,10 +31,61 @@ class bdist_wheel(_bdist_wheel):
         return python, abi, plat
 
 
+class build_scripts(Command):
+    user_options = [
+        ('build-dir=', 'd', "directory to \"build\" (copy) to"),
+        ('force', 'f', "forcibly build everything (ignore file timestamps"),
+        ('executable=', 'e', "specify final destination interpreter path"),
+        ]
+
+    boolean_options = ['force']
+
+    def initialize_options(self):
+        self.build_dir = None
+        self.scripts = None
+        self.force = None
+        self.executable = None
+        self.outfiles = None
+
+    def finalize_options(self):
+        self.set_undefined_options('build',
+                                   ('build_scripts', 'build_dir'),
+                                   ('force', 'force'),
+                                   ('executable', 'executable'))
+        self.scripts = self.distribution.scripts
+
+    def get_source_files(self):
+        return self.scripts
+
+    def run(self):
+        if not self.scripts:
+            return
+        self.copy_scripts()
+
+    def copy_scripts(self):
+        self.mkpath(self.build_dir)
+        outfiles = []
+        updated_files = []
+        for script in self.scripts:
+            outfile = os.path.join(self.build_dir, os.path.basename(script))
+            outfiles.append(outfile)
+            updated_files.append(outfile)
+            self.copy_file(script, outfile)
+
+        if os.name == 'posix':
+            for file in outfiles:
+                if not self.dry_run:
+                    oldmode = os.stat(file)[ST_MODE] & 0o7777
+                    newmode = (oldmode | 0o555) & 0o7777
+                    if newmode != oldmode:
+                        os.chmod(file, newmode)
+        return outfiles, updated_files
+
+
 with open("README.rst", "r") as fp:
     readme = fp.read()
 
-cmdclass = {"bdist_wheel": bdist_wheel}
+cmdclass = {"bdist_wheel": bdist_wheel, "build_scripts": build_scripts}
 
 setup(
     name="patchelf",
@@ -43,15 +96,7 @@ setup(
     version=get_version(),
     cmdclass=cmdclass,
 
-    cmake_install_dir="src/patchelf/data",
-
-    package_dir={"": "src"},
-    packages=["patchelf"],
-    entry_points={
-        'console_scripts': [
-            'patchelf=patchelf:patchelf'
-        ]
-    },
+    scripts=["bin/patchelf"],
 
     url="https://github.com/NixOS/patchelf",
     project_urls={
@@ -83,5 +128,5 @@ setup(
     license_files=["COPYING", "LICENSE"],
     keywords="patchelf auditwheel elf manylinux musllinux",
 
-    extras_require={"test": "pytest"},
+    extras_require={"test": ["pytest", "importlib-metadata"]},
 )

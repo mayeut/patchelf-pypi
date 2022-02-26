@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
 import subprocess
-import sys
+
+from importlib_metadata import files
 
 
 def which(exe):
@@ -13,10 +14,17 @@ def which(exe):
     return None
 
 
-def test_patchelf_entrypoint():
-    subprocess.check_call(["patchelf", "--version"])
-    assert os.path.join(sys.prefix, "bin", "patchelf") == which("patchelf")
+def get_script():
+    for file in files("patchelf"):
+        if not file.stem == "patchelf":
+            continue
+        if file.parent.name != "bin":
+            continue
+        return str(file.locate().resolve(strict=True))
+    raise LookupError("Can't find patchelf script")
 
 
-def test_patchelf_package():
-    subprocess.check_call([sys.executable, "-m", "patchelf", "--version"])
+def test_patchelf_script():
+    script = get_script()
+    subprocess.check_call([script, "--version"])
+    assert script == which("patchelf")
