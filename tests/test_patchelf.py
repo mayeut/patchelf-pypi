@@ -16,7 +16,6 @@ def which(exe):
 
 def get_script():
     for file in files("patchelf"):
-        file_as_str = str(file)
         if not file.stem == "patchelf":
             continue
         if file.parent.name != "bin":
