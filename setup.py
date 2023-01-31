@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import os
 from stat import ST_MODE
@@ -82,7 +81,7 @@ class build_scripts(Command):
         return outfiles, updated_files
 
 
-with open("README.rst", "r") as fp:
+with open("README.rst") as fp:
     readme = fp.read()
 
 cmdclass = {"bdist_wheel": bdist_wheel, "build_scripts": build_scripts}
