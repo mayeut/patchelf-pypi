@@ -7,6 +7,15 @@ and RPATH of ELF executables.
 
 This project allows to get this utility from `PyPI <https://pypi.org>`_ with a simple ``pip install patchelf``.
 
+Reporting issues
+----------------
+
+This repo only aims at providing a rebuild of patchelf on PyPI and as such,
+only issues related to this specific packaging will be dealt with in this repository.
+
+For all issues you might see when using `patchelf`, please report directly upstream after reproducing with one of their pre-built
+binaries or rebuilding patchelf from their repository: https://github.com/NixOS/patchelf
+
 Latest Release
 --------------
 
