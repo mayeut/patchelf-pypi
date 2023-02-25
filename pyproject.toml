@@ -8,7 +8,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-build = "cp310-musllinux*"
+build = "cp311-musllinux*"
 build-verbosity = 3
 repair-wheel-command = "cp {wheel} {dest_dir}/"
 test-extras = "test"
