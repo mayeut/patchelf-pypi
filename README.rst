@@ -47,6 +47,9 @@ The following platforms are supported with binary wheels:
   | Linux aarch64 | | manylinux2014+         |
   |               | | musllinux_1_1+         |
   +---------------+--------------------------+
+  | Linux armv7l  | | manylinux2014+         |
+  |               | | musllinux_1_1+         |
+  +---------------+--------------------------+
   | Linux ppc64le | | manylinux2014+         |
   |               | | musllinux_1_1+         |
   +---------------+--------------------------+
