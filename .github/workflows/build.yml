@@ -76,7 +76,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.13.0
+        uses: pypa/cibuildwheel@v2.13.1
         env:
           CIBW_ARCHS: "${{ matrix.arch == 'armv7l' && 'aarch64' || matrix.arch }}"
 
