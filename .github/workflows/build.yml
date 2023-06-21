@@ -126,7 +126,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.6", "3.11"]
+        python: ["3.6", "3.11", "3.12-dev"]
 
     steps:
       - uses: actions/checkout@v3
