@@ -126,14 +126,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.6", "3.11", "3.12-dev"]
+        python: ["2.7", "3.6", "3.11", "3.12-dev"]
 
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
+        if: matrix.python != '2.7'
         name: Install Python ${{ matrix.python }}
         with:
           python-version: ${{ matrix.python }}
+      - name: Install Ubuntu Python 2.7
+        if: matrix.python == '2.7'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends python2 python3-virtualenv
+          virtualenv -p python2 ${HOME}/cp27
+          ${HOME}/cp27/bin/python -m pip install -U pip
+          ${HOME}/cp27/bin/python -m pip install -U setuptools wheel
+          echo "${HOME}/cp27/bin" >> $GITHUB_PATH
 
       - uses: actions/download-artifact@v3
         with:
