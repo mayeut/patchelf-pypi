@@ -98,8 +98,9 @@ jobs:
           EOF
           docker run -v $(pwd):/gha ${{ matrix.test_image }} sh -ec "cd /gha && sh ./check.sh"
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: "cibw-wheels-${{ matrix.arch }}"
           path: ./wheelhouse/*.whl
 
   build_sdist:
@@ -115,8 +116,9 @@ jobs:
       - name: Build SDist
         run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: cibw-sdist
           path: dist/*.tar.gz
 
   test_sdist:
@@ -145,9 +147,9 @@ jobs:
           ${HOME}/cp27/bin/python -m pip install -U setuptools wheel
           echo "${HOME}/cp27/bin" >> $GITHUB_PATH
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          name: cibw-sdist
           path: sdist
 
       - name: Install SDist
@@ -163,10 +165,11 @@ jobs:
     needs: [build_wheels, build_sdist, test_sdist]
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: cibw-*
           path: dist
+          merge-multiple: true
 
       - run: pipx run twine check --strict dist/*
 
@@ -176,10 +179,11 @@ jobs:
     runs-on: ubuntu-22.04
     if: github.event_name == 'push' && github.repository == 'mayeut/patchelf-pypi' && startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
-          name: artifact
+          pattern: cibw-*
           path: dist
+          merge-multiple: true
 
       - name: Upload to PyPI
         uses: pypa/gh-action-pypi-publish@v1.8.11
