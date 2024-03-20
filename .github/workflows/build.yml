@@ -64,7 +64,7 @@ jobs:
         uses: docker/setup-buildx-action@v3.2.0
 
       - name: Build patchelf_build_${{ matrix.arch }} image
-        uses: docker/build-push-action@v5.1.0
+        uses: docker/build-push-action@v5.3.0
         with:
           context: .
           load: true
