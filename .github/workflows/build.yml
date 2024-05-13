@@ -92,8 +92,7 @@ jobs:
           fi
           WHEEL=$(find ./wheelhouse -name 'patchelf-*.whl')
           auditwheel show \${WHEEL}
-          echo "\${WHEEL}" > ./patchelf
-          pipx install -f --pip-args="-r" patchelf
+          pipx install -f \${WHEEL}
           patchelf --version
           EOF
           docker run -v $(pwd):/gha ${{ matrix.test_image }} sh -ec "cd /gha && sh ./check.sh"
