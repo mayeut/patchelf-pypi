@@ -61,7 +61,7 @@ jobs:
         if: matrix.arch != 'x86_64'
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.4.0
+        uses: docker/setup-buildx-action@v3.5.0
 
       - name: Build patchelf_build_${{ matrix.arch }} image
         uses: docker/build-push-action@v6.4.1
