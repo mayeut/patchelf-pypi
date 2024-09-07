@@ -77,7 +77,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Build wheels
-        uses: mayeut/cibuildwheel@docker-platform
+        uses: mayeut/cibuildwheel@no-pull-always
         env:
           CIBW_ARCHS: "${{ matrix.arch == 'armv7l' && 'aarch64' || matrix.arch }}"
 
