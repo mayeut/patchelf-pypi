@@ -127,7 +127,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["2.7", "3.6", "3.11", "3.12-dev"]
+        python: ["2.7", "3.6", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
@@ -136,6 +136,7 @@ jobs:
         name: Install Python ${{ matrix.python }}
         with:
           python-version: ${{ matrix.python }}
+          allow-prereleases: true
       - name: Install Ubuntu Python 2.7
         if: matrix.python == '2.7'
         run: |
