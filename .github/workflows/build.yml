@@ -69,15 +69,15 @@ jobs:
           context: .
           load: true
           push: false
-          tags: patchelf_build_${{ matrix.arch == 'armv7l' && 'aarch64' || matrix.arch }}:latest
+          tags: patchelf_build_${{ matrix.arch }}:latest
           platforms: linux/${{ matrix.docker_arch }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21.1
+        uses: pypa/cibuildwheel@v2.21.2
         env:
-          CIBW_ARCHS: "${{ matrix.arch == 'armv7l' && 'aarch64' || matrix.arch }}"
+          CIBW_ARCHS: "${{ matrix.arch }}"
 
       - name: Test wheel on ${{ matrix.test_image }}
         run: |
