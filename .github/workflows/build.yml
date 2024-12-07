@@ -48,7 +48,7 @@ jobs:
             test_image: quay.io/pypa/manylinux2014_s390x
           - arch: "armv7l"
             docker_arch: "arm/v7"
-            test_image: python:3.6-slim-jessie
+            test_image: python:3.7-slim-stretch
           - arch: "universal2"
             docker_arch: "na"
             test_image: "na"
@@ -132,29 +132,19 @@ jobs:
   test_sdist:
     name: Test SDist with python ${{ matrix.python }}
     needs: [build_sdist]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
-        python: ["2.7", "3.6", "3.12", "3.13"]
+        python: ["3.7", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        if: matrix.python != '2.7'
         name: Install Python ${{ matrix.python }}
         with:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
-      - name: Install Ubuntu Python 2.7
-        if: matrix.python == '2.7'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends python2 python3-virtualenv
-          virtualenv -p python2 ${HOME}/cp27
-          ${HOME}/cp27/bin/python -m pip install -U pip
-          ${HOME}/cp27/bin/python -m pip install -U setuptools wheel
-          echo "${HOME}/cp27/bin" >> $GITHUB_PATH
 
       - uses: actions/download-artifact@v4
         with:
@@ -162,12 +152,10 @@ jobs:
           path: sdist
 
       - name: Install SDist
-        run: |
-          SDIST="$(pwd)/$(find sdist -name '*.tar.gz')"
-          pip install "patchelf[test] @ file://${SDIST}"
+        run: pip install $(ls sdist/*.tar.gz)[test]
 
       - name: Test installed SDist
-        run: pytest ./tests
+        run: pip check && pytest ./tests
 
   check_dist:
     name: Check dist

@@ -1,17 +1,66 @@
 [build-system]
-requires = [
-    "scikit-build>=0.12",
-    "setuptools>=42",
-    "setuptools_scm>=5",
-    "wheel",
+requires = ["scikit-build-core>=0.10"]
+build-backend = "scikit_build_core.build"
+
+
+[project]
+name = "patchelf"
+dynamic = ["version"]
+description = "A small utility to modify the dynamic linker and RPATH of ELF executables."
+readme = {file = "README.rst", content-type = "text/x-rst"}
+authors = [
+    { name = "Matthieu Darbois", email = "mayeut@users.noreply.github.com" },
 ]
-build-backend = "setuptools.build_meta"
+keywords = [
+    "auditwheel",
+    "elf",
+    "manylinux",
+    "musllinux",
+    "patchelf",
+]
+# license = "Apache-2.0 AND GPL-3.0-or-later"
+license = {text = "GPL-3.0-or-later"}
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: C",
+    "Programming Language :: C++",
+    "Programming Language :: Python",
+    "Topic :: Software Development :: Build Tools",
+]
+requires-python = ">=3.7"
+
+[project.optional-dependencies]
+test = [
+    "importlib_metadata>=2.0",
+    "pytest>=6.0",
+]
+
+[project.urls]
+"Bug Tracker" = "https://github.com/mayeut/patchelf-pypi/issues"
+Homepage = "https://github.com/NixOS/patchelf"
+"Source Code" = "https://github.com/mayeut/patchelf-pypi"
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+cmake.version = "CMakeLists.txt"  # Force parsing version from CMakeLists.txt and disable fallback to '>=3.15'
+ninja.make-fallback = true
+build-dir = "build/{wheel_tag}"
+wheel.py-api = "py3"
+wheel.expand-macos-universal-tags = true
+metadata.version.provider = "scikit_build_core.metadata.setuptools_scm"
+install.components = ["python"]
+
+[tool.setuptools_scm]
 
 [tool.cibuildwheel]
 build = "cp312-musllinux* cp311-macosx_universal2"
-build-verbosity = 3
+build-verbosity = 1
 test-extras = "test"
-test-command = "pytest {project}/tests"
+test-command = "pip check && pytest {project}/tests"
 musllinux-x86_64-image = "patchelf_build_x86_64"
 musllinux-i686-image = "patchelf_build_i686"
 musllinux-aarch64-image = "patchelf_build_aarch64"
@@ -19,13 +68,10 @@ musllinux-ppc64le-image = "patchelf_build_ppc64le"
 musllinux-s390x-image = "patchelf_build_s390x"
 musllinux-armv7l-image = "patchelf_build_armv7l"
 
-[[tool.cibuildwheel.overrides]]
-select = "*-musllinux*"
-repair-wheel-command = "cp {wheel} {dest_dir}/"
+[tool.cibuildwheel.linux]
+config-settings = { "cmake.define.RUN_PATCHELF_TEST" = "ON" }
+environment = { "CXXFLAGS" = "-D_FORTIFY_SOURCE=2 -fstack-protector-strong -Wformat -Werror=format-security -O2 -static" }
+repair-wheel-command = "cp {wheel} {dest_dir}/ && pipx run 'wheel>=0.42' tags --remove --platform-tag ${PLATFORM_TAG} {dest_dir}/*.whl"
 
-[tool.cibuildwheel.linux.environment]
-CXXFLAGS = "-D_FORTIFY_SOURCE=2 -fstack-protector-strong -Wformat -Werror=format-security -O2 -static"
-SKBUILD_CONFIGURE_OPTIONS = "-DRUN_PATCHELF_TEST:BOOL=ON"
-
-[tool.cibuildwheel.macos.environment]
-CXXFLAGS = "-arch arm64 -arch x86_64 -O2"
+[tool.cibuildwheel.macos]
+environment = { "CXXFLAGS" = "-arch arm64 -arch x86_64 -O2" }

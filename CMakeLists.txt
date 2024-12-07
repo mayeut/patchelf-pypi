@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 
 project(PatchelfPythonDistributions)
 
@@ -43,4 +43,4 @@ if(STRIP_EXECUTABLE)
   add_dependencies(strip_patchelf_executable build_patchelf)
 endif()
 
-install(PROGRAMS ${patchelf_executable} DESTINATION bin)
+install(PROGRAMS "${patchelf_executable}" COMPONENT python DESTINATION "${SKBUILD_SCRIPTS_DIR}")
