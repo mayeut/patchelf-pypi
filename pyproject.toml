@@ -8,9 +8,8 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-build = "cp312-musllinux*"
+build = "cp312-musllinux* cp311-macosx_universal2"
 build-verbosity = 3
-repair-wheel-command = "cp {wheel} {dest_dir}/"
 test-extras = "test"
 test-command = "pytest {project}/tests"
 musllinux-x86_64-image = "patchelf_build_x86_64"
@@ -20,5 +19,13 @@ musllinux-ppc64le-image = "patchelf_build_ppc64le"
 musllinux-s390x-image = "patchelf_build_s390x"
 musllinux-armv7l-image = "patchelf_build_armv7l"
 
+[[tool.cibuildwheel.overrides]]
+select = "*-musllinux*"
+repair-wheel-command = "cp {wheel} {dest_dir}/"
+
 [tool.cibuildwheel.linux.environment]
 CXXFLAGS = "-D_FORTIFY_SOURCE=2 -fstack-protector-strong -Wformat -Werror=format-security -O2 -static"
+SKBUILD_CONFIGURE_OPTIONS = "-DRUN_PATCHELF_TEST:BOOL=ON"
+
+[tool.cibuildwheel.macos.environment]
+CXXFLAGS = "-arch arm64 -arch x86_64 -O2"

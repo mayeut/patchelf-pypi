@@ -26,7 +26,7 @@ jobs:
   build_wheels:
     name: Build ${{ matrix.arch }} wheels
     needs: [lint]
-    runs-on: ubuntu-24.04
+    runs-on: ${{ matrix.arch == 'universal2' && 'macos-14' || 'ubuntu-24.04' }}
     strategy:
       fail-fast: false
       matrix:
@@ -49,6 +49,9 @@ jobs:
           - arch: "armv7l"
             docker_arch: "arm/v7"
             test_image: python:3.6-slim-jessie
+          - arch: "universal2"
+            docker_arch: "na"
+            test_image: "na"
 
     steps:
       - uses: actions/checkout@v4
@@ -58,13 +61,15 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3.2.0
-        if: matrix.arch != 'x86_64'
+        if: runner.os == 'Linux'
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3.7.1
+        if: runner.os == 'Linux'
 
       - name: Build patchelf_build_${{ matrix.arch }} image
         uses: docker/build-push-action@v6.10.0
+        if: runner.os == 'Linux'
         with:
           context: .
           load: true
@@ -74,12 +79,17 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Install build dependencies
+        if: runner.os == 'macOS'
+        run: brew install autoconf automake
+
       - name: Build wheels
         uses: pypa/cibuildwheel@v2.22.0
         env:
           CIBW_ARCHS: "${{ matrix.arch }}"
 
       - name: Test wheel on ${{ matrix.test_image }}
+        if: runner.os == 'Linux'
         run: |
           cat <<EOF > check.sh
           set -e
