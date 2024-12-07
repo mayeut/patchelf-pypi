@@ -17,8 +17,13 @@ class bdist_wheel(_bdist_wheel):
     def get_tag(self):
         python, abi, plat = _bdist_wheel.get_tag(self)
         python, abi = "py2.py3", "none"
-        if os.environ.get("CIBUILDWHEEL", "0") == "1":
-            assert plat.startswith("linux_")
+        any_linux = all(
+            (
+                os.environ.get("CIBUILDWHEEL", "0") == "1",
+                plat.startswith("linux_"),
+            )
+        )
+        if any_linux:
             arch = plat[6:]
             tags = []
             if arch in {"i686", "x86_64"}:

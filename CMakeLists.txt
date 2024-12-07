@@ -1,6 +1,8 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.10)
 
 project(PatchelfPythonDistributions)
+
+option(RUN_PATCHELF_TEST "Run patchelf test suite" OFF)
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_MODULE_PATH})
 
@@ -12,13 +14,20 @@ include(ExternalProject)
 #-----------------------------------------------------------------------------
 set(Patchelf_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/patchelf-upstream)
 find_program(MAKE_EXE NAMES gmake make)
+
+if(RUN_PATCHELF_TEST)
+  set(PATCHELF_BUILD_COMMAND "${MAKE_EXE}" check)
+else()
+  set(PATCHELF_BUILD_COMMAND "${MAKE_EXE}")
+endif()
+
 ExternalProject_add(build_patchelf
   SOURCE_DIR ${Patchelf_SOURCE_DIR}
   DOWNLOAD_COMMAND ""
   UPDATE_COMMAND ""
   PATCH_COMMAND ./bootstrap.sh
   CONFIGURE_COMMAND ./configure
-  BUILD_COMMAND ${MAKE_EXE} check
+  BUILD_COMMAND ${PATCHELF_BUILD_COMMAND}
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND ""
 )
