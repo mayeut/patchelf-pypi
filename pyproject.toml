@@ -71,14 +71,7 @@ musllinux-armv7l-image = "patchelf_build_armv7l"
 [tool.cibuildwheel.linux]
 config-settings = { "cmake.define.RUN_PATCHELF_TEST" = "ON" }
 environment = { "CXXFLAGS" = "-D_FORTIFY_SOURCE=2 -fstack-protector-strong -Wformat -Werror=format-security -O2 -static" }
+repair-wheel-command = "cp {wheel} {dest_dir}/ && pipx run 'wheel>=0.42' tags --remove --platform-tag ${PLATFORM_TAG} {dest_dir}/*.whl"
 
 [tool.cibuildwheel.macos]
 environment = { "CXXFLAGS" = "-arch arm64 -arch x86_64 -O2" }
-
-[[tool.cibuildwheel.overrides]]
-select = ["*linux_x86_64", "*linux_i686"]
-repair-wheel-command = "ARCH=$(uname -m) && python -m pip install 'wheel>=0.42' && cd {dest_dir} && cp {wheel} {dest_dir}/ && python -m wheel tags --remove --platform-tag manylinux_2_5_${ARCH}.manylinux1_${ARCH}.musllinux_1_1_${ARCH} {dest_dir}/*.whl"
-
-[[tool.cibuildwheel.overrides]]
-select = ["*linux_aarch64", "*linux_armv7l", "*linux_ppc64le", "*linux_s390x"]
-repair-wheel-command = "ARCH=$(uname -m) && python -m pip install 'wheel>=0.42' && cd {dest_dir} && cp {wheel} {dest_dir}/ && python -m wheel tags --remove --platform-tag manylinux_2_17_${ARCH}.manylinux2014_${ARCH}.musllinux_1_1_${ARCH} {dest_dir}/*.whl"
