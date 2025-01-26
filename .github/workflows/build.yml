@@ -26,7 +26,7 @@ jobs:
   build_wheels:
     name: Build ${{ matrix.arch }} wheels
     needs: [lint]
-    runs-on: ${{ matrix.arch == 'universal2' && 'macos-14' || 'ubuntu-24.04' }}
+    runs-on: ${{ matrix.arch == 'universal2' && 'macos-14' || 'ubuntu-24.04' }}${{ startsWith(matrix.docker_arch, 'arm') && '-arm' || '' }}
     strategy:
       fail-fast: false
       matrix:
