@@ -180,6 +180,11 @@ jobs:
     needs: [build_wheels, build_sdist, test_sdist, check_dist]
     runs-on: ubuntu-24.04
     if: github.event_name == 'push' && github.repository == 'mayeut/patchelf-pypi' && startsWith(github.ref, 'refs/tags/')
+    environment:
+      name: pypi
+      url: https://pypi.org/p/patchelf
+    permissions:
+      id-token: write
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -189,6 +194,3 @@ jobs:
 
       - name: Upload to PyPI
         uses: pypa/gh-action-pypi-publish@v1.12.4
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_RELEASE_PASSWORD }}
