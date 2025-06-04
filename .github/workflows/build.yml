@@ -68,7 +68,7 @@ jobs:
         if: runner.os == 'Linux'
 
       - name: Build patchelf_build_${{ matrix.arch }} image
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v6.18.0
         if: runner.os == 'Linux'
         with:
           context: .
