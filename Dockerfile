@@ -4,7 +4,7 @@ RUN mkdir -p /opt/python && \
     ln -s /usr/local /opt/python/cp39-cp39 && \
     ln -s /usr/local /opt/python/cp312-cp312
 
-RUN /usr/local/bin/python3 -m pip install pipx
+RUN /usr/local/bin/python3 -m pip install pipx build
 
 ARG TARGETARCH
 
