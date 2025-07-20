@@ -1,8 +1,8 @@
-FROM python:3.12-alpine3.20
+FROM python:3.13-alpine3.22
 RUN apk add --no-cache autoconf automake bash build-base cmake git tar
 RUN mkdir -p /opt/python && \
     ln -s /usr/local /opt/python/cp39-cp39 && \
-    ln -s /usr/local /opt/python/cp312-cp312
+    ln -s /usr/local /opt/python/cp313-cp313
 
 RUN /usr/local/bin/python3 -m pip install pipx build
 
