@@ -49,6 +49,9 @@ jobs:
           - arch: "armv7l"
             docker_arch: "arm/v7"
             test_image: python:3.7-slim-stretch
+          - arch: "riscv64"
+            docker_arch: "riscv64"
+            test_image: quay.io/pypa/manylinux_2_39_riscv64
           - arch: "universal2"
             docker_arch: "na"
             test_image: "na"
