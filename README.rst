@@ -56,7 +56,7 @@ The following platforms are supported with binary wheels:
   | Linux s390x   | | manylinux2014+         |
   |               | | musllinux_1_1+         |
   +---------------+--------------------------+
-  | Linux riscv64 | | manylinux2014+         |
+  | Linux riscv64 | | manylinux_2_31+        |
   |               | | musllinux_1_1+         |
   +---------------+--------------------------+
 

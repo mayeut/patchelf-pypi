@@ -23,5 +23,10 @@ ARG ALIAS1=${ALIAS1:-manylinux1}
 
 ARG ALIAS2=${ALIAS1/manylinux1/manylinux_2_5}
 ARG ALIAS2=${ALIAS2/manylinux2014/manylinux_2_17}
+ARG ALIAS2=${ALIAS2}_${PLATFORM}
+ARG ALIAS2=${ALIAS2/manylinux_2_17_riscv64/manylinux_2_31_riscv64}
 
-ENV PLATFORM_TAG=${ALIAS2}_${PLATFORM}.${ALIAS1}_${PLATFORM}.musllinux_1_1_${PLATFORM}
+ARG ALIAS1=${ALIAS1}_${PLATFORM}.
+ARG ALIAS1=${ALIAS1/manylinux2014_riscv64./}
+
+ENV PLATFORM_TAG=${ALIAS2}.${ALIAS1}musllinux_1_1_${PLATFORM}
