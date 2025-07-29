@@ -59,7 +59,6 @@ install.components = ["python"]
 [tool.cibuildwheel]
 build = "cp313-musllinux* cp311-macosx_universal2"
 build-verbosity = 1
-enable = ["cpython-experimental-riscv64"]
 test-extras = "test"
 test-command = "pip check && pytest {project}/tests"
 musllinux-x86_64-image = "patchelf_build_x86_64"
