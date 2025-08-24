@@ -61,18 +61,11 @@ build = "cp313-musllinux* cp311-macosx_universal2"
 build-verbosity = 1
 test-extras = "test"
 test-command = "pip check && pytest {project}/tests"
-musllinux-x86_64-image = "patchelf_build_x86_64"
-musllinux-i686-image = "patchelf_build_i686"
-musllinux-aarch64-image = "patchelf_build_aarch64"
-musllinux-ppc64le-image = "patchelf_build_ppc64le"
-musllinux-s390x-image = "patchelf_build_s390x"
-musllinux-armv7l-image = "patchelf_build_armv7l"
-musllinux-riscv64-image = "patchelf_build_riscv64"
 
 [tool.cibuildwheel.linux]
 config-settings = { "cmake.define.RUN_PATCHELF_TEST" = "ON" }
 environment = { "CXXFLAGS" = "-D_FORTIFY_SOURCE=2 -fstack-protector-strong -Wformat -Werror=format-security -O2 -static" }
-repair-wheel-command = "cp {wheel} {dest_dir}/ && pipx run 'wheel>=0.42' tags --remove --platform-tag ${PLATFORM_TAG} {dest_dir}/*.whl"
+repair-wheel-command = "./repair.sh {wheel} {dest_dir}"
 
 [tool.cibuildwheel.macos]
 environment = { "CXXFLAGS" = "-arch arm64 -arch x86_64 -O2" }
