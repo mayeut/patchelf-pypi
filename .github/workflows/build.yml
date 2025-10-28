@@ -93,7 +93,7 @@ jobs:
           EOF
           docker run --platform linux/${{ matrix.arch == 'i686' && 'amd64' || matrix.docker_arch }} -v $(pwd):/gha ${{ matrix.test_image }} sh -ec "cd /gha && sh ./check.sh"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: "cibw-wheels-${{ matrix.arch }}"
           path: ./wheelhouse/*.whl
@@ -111,7 +111,7 @@ jobs:
       - name: Build SDist
         run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: cibw-sdist
           path: dist/*.tar.gz
