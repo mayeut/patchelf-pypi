@@ -71,7 +71,7 @@ jobs:
         run: brew install autoconf automake
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.1
+        uses: pypa/cibuildwheel@v3.3.0
         env:
           CIBW_ARCHS: "${{ matrix.arch }}"
 
