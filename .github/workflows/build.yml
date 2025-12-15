@@ -93,7 +93,7 @@ jobs:
           EOF
           docker run --platform linux/${{ matrix.arch == 'i686' && 'amd64' || matrix.docker_arch }} -v $(pwd):/gha ${{ matrix.test_image }} sh -ec "cd /gha && sh ./check.sh"
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: "cibw-wheels-${{ matrix.arch }}"
           path: ./wheelhouse/*.whl
@@ -111,7 +111,7 @@ jobs:
       - name: Build SDist
         run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: cibw-sdist
           path: dist/*.tar.gz
@@ -133,7 +133,7 @@ jobs:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
 
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           name: cibw-sdist
           path: sdist
@@ -149,7 +149,7 @@ jobs:
     needs: [build_wheels, build_sdist, test_sdist]
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           pattern: cibw-*
           path: dist
@@ -168,7 +168,7 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v7
         with:
           pattern: cibw-*
           path: dist
