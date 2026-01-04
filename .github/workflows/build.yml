@@ -9,24 +9,35 @@ on:
     tags:
       - "*.*.*.*"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+permissions: {}
+
 jobs:
   lint:
     name: Lint
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           submodules: 'recursive'
-      - uses: actions/setup-python@v6
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         with:
           python-version: '3.x'
-      - uses: pre-commit/action@v3.0.1
+      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
 
 
   build_wheels:
     name: Build ${{ matrix.arch }} wheels
     needs: [lint]
     runs-on: ${{ matrix.arch == 'universal2' && 'macos-14' || 'ubuntu-24.04' }}${{ startsWith(matrix.docker_arch, 'arm') && '-arm' || '' }}
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -57,13 +68,14 @@ jobs:
             test_image: "na"
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0  # required for setuptools_scm to find tags
           submodules: 'recursive'
+          persist-credentials: false
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.7.0
+        uses: docker/setup-qemu-action@c7c53464625b32c7a7e944ae62b3e17d2b600130 # v3.7.0
         if: runner.os == 'Linux'
 
       - name: Install build dependencies
@@ -71,7 +83,7 @@ jobs:
         run: brew install autoconf automake
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.3.0
+        uses: pypa/cibuildwheel@63fd63b352a9a8bdcc24791c9dbee952ee9a8abc # v3.3.0
         env:
           CIBW_ARCHS: "${{ matrix.arch }}"
 
@@ -93,7 +105,7 @@ jobs:
           EOF
           docker run --platform linux/${{ matrix.arch == 'i686' && 'amd64' || matrix.docker_arch }} -v $(pwd):/gha ${{ matrix.test_image }} sh -ec "cd /gha && sh ./check.sh"
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: "cibw-wheels-${{ matrix.arch }}"
           path: ./wheelhouse/*.whl
@@ -102,16 +114,19 @@ jobs:
     name: Build source distribution
     needs: [lint]
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
         with:
           fetch-depth: 0  # required for setuptools_scm to find tags
           submodules: 'recursive'
+          persist-credentials: false
 
       - name: Build SDist
         run: pipx run build --sdist
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
         with:
           name: cibw-sdist
           path: dist/*.tar.gz
@@ -120,20 +135,24 @@ jobs:
     name: Test SDist with python ${{ matrix.python }}
     needs: [build_sdist]
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
         python: ["3.7", "3.13"]
 
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
         name: Install Python ${{ matrix.python }}
         with:
           python-version: ${{ matrix.python }}
           allow-prereleases: true
 
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           name: cibw-sdist
           path: sdist
@@ -145,11 +164,19 @@ jobs:
         run: pip check && pytest ./tests
 
   check_dist:
+    if: always()
     name: Check dist
     needs: [build_wheels, build_sdist, test_sdist]
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
     steps:
-      - uses: actions/download-artifact@v7
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@05ac9388f0aebcb5727afa17fcccfecd6f8ec5fe # v1.2.2
+        with:
+          jobs: ${{ toJSON(needs) }}
+
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           pattern: cibw-*
           path: dist
@@ -166,13 +193,21 @@ jobs:
       name: pypi
       url: https://pypi.org/p/patchelf
     permissions:
-      id-token: write
+      attestations: write  # for attestation generation
+      id-token: write  # for trusted publishing
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
         with:
           pattern: cibw-*
           path: dist
           merge-multiple: true
 
+      - name: Generate artifact attestation for sdist and wheel
+        uses: actions/attest-build-provenance@00014ed6ed5efc5b1ab7f7f34a39eb55d41aa4f8 # v3.1.0
+        with:
+          subject-path: "dist/patchelf-*"
+
       - name: Upload to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.13.0
+        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
+        with:
+          attestations: true
