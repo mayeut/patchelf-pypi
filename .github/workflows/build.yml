@@ -59,7 +59,7 @@ jobs:
             test_image: quay.io/pypa/manylinux2014_s390x
           - arch: "armv7l"
             docker_arch: "arm/v7"
-            test_image: python:3.7-slim-stretch
+            test_image: quay.io/pypa/manylinux_2_31_armv7l
           - arch: "riscv64"
             docker_arch: "riscv64"
             test_image: quay.io/pypa/manylinux_2_39_riscv64
