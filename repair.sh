@@ -9,6 +9,8 @@ if [ "${AUDITWHEEL_ARCH}" == "x86_64" ] || [ "${AUDITWHEEL_ARCH}" == "i686" ]; t
 	PLATFORM_TAG="manylinux1_${AUDITWHEEL_ARCH}.manylinux_2_5_${AUDITWHEEL_ARCH}.musllinux_1_1_${AUDITWHEEL_ARCH}"
 elif [ "${AUDITWHEEL_ARCH}" == "riscv64" ]; then
 	PLATFORM_TAG="manylinux_2_31_${AUDITWHEEL_ARCH}.musllinux_1_1_${AUDITWHEEL_ARCH}"
+elif [ "${AUDITWHEEL_ARCH}" == "loongarch64" ]; then
+	PLATFORM_TAG="manylinux_2_36_${AUDITWHEEL_ARCH}.musllinux_1_2_${AUDITWHEEL_ARCH}"
 else
 	PLATFORM_TAG="manylinux2014_${AUDITWHEEL_ARCH}.manylinux_2_17_${AUDITWHEEL_ARCH}.musllinux_1_1_${AUDITWHEEL_ARCH}"
 fi
