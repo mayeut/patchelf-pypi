@@ -18,7 +18,7 @@ permissions: {}
 jobs:
   lint:
     name: Lint
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
@@ -26,16 +26,12 @@ jobs:
         with:
           submodules: 'recursive'
           persist-credentials: false
-      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
-        with:
-          python-version: '3.x'
-      - uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd # v3.0.1
-
+      - uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # v3.1.0
 
   build_wheels:
     name: Build ${{ matrix.arch }} wheels
     needs: [lint]
-    runs-on: ${{ matrix.arch == 'universal2' && 'macos-14' || 'ubuntu-24.04' }}${{ startsWith(matrix.docker_arch, 'arm') && '-arm' || '' }}
+    runs-on: ${{ matrix.arch == 'universal2' && 'macos-15' || 'ubuntu-24.04' }}${{ startsWith(matrix.docker_arch, 'arm') && '-arm' || '' }}
     permissions:
       contents: read
     strategy:
@@ -114,7 +110,7 @@ jobs:
   build_sdist:
     name: Build source distribution
     needs: [lint]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
@@ -141,7 +137,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.7", "3.13"]
+        python: ["3.7", "3.15"]
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -168,7 +164,7 @@ jobs:
     if: always()
     name: Check dist
     needs: [build_wheels, build_sdist, test_sdist]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
@@ -188,7 +184,7 @@ jobs:
   upload_pypi:
     name: Upload to PyPI
     needs: [build_wheels, build_sdist, test_sdist, check_dist]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     if: github.event_name == 'push' && github.repository == 'mayeut/patchelf-pypi' && startsWith(github.ref, 'refs/tags/')
     environment:
       name: pypi
